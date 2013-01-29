@@ -1,0 +1,9 @@
+/* CSS declarations go here */
+.login-link-text {
+    line-height: 2.5;
+    color: #ddd;
+}
+
+.login-link-text:hover {
+    color: #aaa;
+}
