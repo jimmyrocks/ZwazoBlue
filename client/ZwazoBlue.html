@@ -60,7 +60,7 @@
             <form class="well form-search">
                 {{> building_dropdown}}
                 {{> location_dropdown}}
-                {{> show_calendar}}
+                {{{modal_calendar}}}
             </form>
         </div>
         <div class="span9" style="background-color:#ddd;height:100px">Map</div>
@@ -71,86 +71,104 @@
 <template name="building_dropdown">
 <p>Select a building</p>
 <select id="buildingList" style="width:95%" onchange="setSelection(this);" {{disabled}}>
-	<option>Buildings:</option>
-	{{#each buildingName}}
-		<option {{selected}} value="{{name}}">{{name}}</option>
-	{{/each}}
+    <option>Buildings:</option>
+    {{#each buildingName}}
+    <option {{selected}} value="{{name}}">{{name}}</option>
+    {{/each}}
 </select>
 </template>
 
 <template name="location_dropdown">
 <p>Select a location</p>
 <select id="locationList" style="width:95%" onchange="setSelection(this);" {{disabled}}>
-	<option>Locations:</option>
-	{{#each locationName}}
-		<option {{selected}} value="{{name}}">{{name}}</option>
-	{{/each}}
+    <option>Locations:</option>
+    {{#each locationName}}
+    <option {{selected}} value="{{name}}">{{name}}</option>
+    {{/each}}
 </select>
-</template>
-
-<template name="show_calendar">
 <br/>
 <br/>
 <p>
 <button
-	onclick="Session.set('extras', 'show_calendar')" 
-	data-toggle="modal" 
-	href="#popup_calendar" 
-	class="btn btn-primary btn-small" 
-	{{disabled}}>
-	Show Calendar for this Location</button>
+    onclick="modalCalendar.show();"
+    class="btn btn-primary btn-small"
+    {{disabled}}>
+    Show Calendar for this Location</button>
 </p>
-<div class="modal fade" id="popup_calendar">
-  <div class="modal-header">
-    <a class="close" data-dismiss="modal">&times;</a>
-    <h3>Select your time slots</h3>
-    <h4>{{selectedLocation}}</h4>
-    <p>{{selectedDescription}}</p>
-  </div>
-  <div class="modal-body">	
-			<table class="table">
-				<thead>
-					<tr>
-						<th></th>
-							{{#each availableDays}}
-								<th><label>{{day}}<br/>{{date}}</label></th>
-							{{/each}}
-					<tr>
-				</thead>
-				{{#each availableTimes}}
-					<tbody>
-						<td><label>{{startTime}} - {{endTime}}</label></td>
-						{{#each availableDays}}
-							<td>
-								<button class="btn btn-primary btn-small" data-toggle="button" {{disabledCheckbox}}>[{{remaining}}/{{available}}]</button>
-							</td>
-						{{/each}}
-					</tbody>
-				{{/each}}
-			</table>
-  </div>
-  <div class="modal-footer">
-    <a href="#" class="btn btn-success btn-small" data-dismiss="modal">Close Window</a>
-  </div>
+</template>
+
+<template name="show_calendar">
+<div id="dimBackground" style="position: absolute; top: 0px; left: 0;
+    background-color: #000; width:100%; height:100%; opacity: .7; z-index:1000"
+    onclick="modalCalendar.hide();"></div>
+<div class="modal" id="popup_calendar"
+    style="opacity:1; top:275px">
+    <div class="modal-header" style="padding:10px 15px 0px 15px;">
+        <a class="close" onclick="modalCalendar.hide();">&times;</a>
+        <h3>{{selectedLocation}}</h3>
+        <p>{{selectedDescription}}</p>
+    </div>
+    <div class="modal-body" style="padding:0px 15px 0px 15px;">
+        <table class="table" style="padding:0px 0px 0px 0px;">
+            <thead>
+                <tr>
+                    <th><label><h5>Select your time slots:</5></label></th>
+                    {{#each availableDays}}
+                        <th><label>{{day}}<br/>{{date}}</label></th>
+                    {{/each}}
+                <tr>
+            </thead>
+            <tbody>
+                {{#each availableTimes}}
+                <tr>
+                    <td><label>{{startTime}} - {{endTime}}</label></td>
+                    {{{availableSlot}}}
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    <div class="modal-footer" style="padding:0px 15px 10px 15px;">
+        <button class="btn btn-small" onclick="modalCalendar.hide();">
+            Close Window
+        </button>
+    </div>
 </div>
 </template>
 
-<template name="schedule">
-<h2>Schedule!!</h2>
-</template>
+        <template name="schedule">
+         <table class="table" style="padding:0px 0px 0px 0px;">
+            <thead>
+                <tr>
+                    <th><label><h5>Your selected time slots:</5></label></th>
+                    {{#each availableDays}}
+                        <th><label>{{day}}<br/>{{date}}</label></th>
+                    {{/each}}
+                <tr>
+            </thead>
+            <tbody>
+                {{#each availableTimes}}
+                <tr>
+                    <td><label>{{startTime}} - {{endTime}}</label></td>
+                    {{{availableSlot}}}
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+            </template>
 
-<template name="help">
-<h2>Help!!</h2>
-</template>
+            <template name="help">
+            <h2>Help!!</h2>
+            </template>
 
-<template name="contact">
-<h2>Contact!!</h2>
-</template>
+            <template name="contact">
+            <h2>Contact!!</h2>
+            </template>
 
-<template name="signin">
-<div align="center">
-    <h2>Welcome to {{brandLogoWhite}}</h2>
-    <hr width=95%>
-    <h4>Please Sign Up or Sign In in the upper right corner.</h4>
-</div>
-</template>
+            <template name="signin">
+            <div align="center">
+                <h2>Welcome to {{brandLogoWhite}}</h2>
+                <hr width=95%>
+                <h4>Please Sign Up or Sign In in the upper right corner.</h4>
+            </div>
+            </template>
