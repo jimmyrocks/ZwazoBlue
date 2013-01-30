@@ -70,20 +70,20 @@
 
 <template name="building_dropdown">
 <p>Select a building</p>
-<select id="buildingList" style="width:95%" onchange="Session.set('selBuilding',this.value);" {{disabled}}>
+<select id="buildingList" style="width:95%" onchange="setSelection(this);" {{disabled}}>
 	<option>Buildings:</option>
 	{{#each buildingName}}
-		<option {{selected}}>{{name}}</option>
+		<option {{selected}} value="{{name}}">{{name}}</option>
 	{{/each}}
 </select>
 </template>
 
 <template name="location_dropdown">
 <p>Select a location</p>
-<select id="locationList" style="width:95%" onchange="Session.set('selLocation',this.value);" {{disabled}}>
+<select id="locationList" style="width:95%" onchange="setSelection(this);" {{disabled}}>
 	<option>Locations:</option>
 	{{#each locationName}}
-		<option {{selected}}>{{name}}</option>
+		<option {{selected}} value="{{name}}">{{name}}</option>
 	{{/each}}
 </select>
 </template>

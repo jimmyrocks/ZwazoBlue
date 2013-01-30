@@ -2,11 +2,27 @@
 //Buildings = new Meteor.Collection("buildings");
 
 var menuItems = [
-{name: "Map"},
-{name: "Schedule"},
-{name: "Help"},
-{name: "Contact"}
+	{name: "Map", admin: "false"},
+	{name: "Schedule", admin: "false"},
+	{name: "Help", admin: "false"},
+	{name: "Contact", admin: "false"},
+	{name: "Admin", admin: "true"}
 ];
+
+var setSelection = function(dropdownBox) {
+	
+	var sessionElement = dropdownBox.id;
+	var sessionValue = dropdownBox.value;
+	
+	if (dropdownBox.selectedIndex > 0) {
+		Session.set(sessionElement, sessionValue);
+	} else {
+		Session.set(sessionElement, "");
+	}
+	
+	// There will probably be some cool map logic in here too!
+	
+};
 
 if (Meteor.isClient) {
     Template.main.header = function () {
@@ -38,28 +54,77 @@ if (Meteor.isClient) {
     };
     
     Template.building_dropdown.buildingName = function() {
-    	return[{_id: "1", name: "bob"}, {_id: "2", name: "joe"}];
+    /*
+    	Buildings.remove({});
+    	var tempDB = [
+    			{name: "Building1", approved: "true"},
+    			{name: "Building2", approved: "true"},
+    			{name: "Building3", approved: "true"},
+    			{name: "Building4", approved: "false"},
+    			{name: "Building5", approved: "true"},
+    			{name: "Building6", approved: "false"},
+    			{name: "Building7", approved: "true"}
+    		];
+    	for (var i = 0; i<tempDB.length; i++) {
+    		Buildings.insert(tempDB[i]);
+    	}
+    	Buildings.find().fetch();
+	*/
+	
+    	return Buildings.find({approved:"true"}, {sort: {name: 1}});
     };
     Template.building_dropdown.selected = function(a) {
     	return Session.equals('selBuilding', this.name) ? 'selected' : '';
     };
     Template.location_dropdown.locationName = function() {
-    	return[{_id: "1", name: "bob"}, {_id: "2", name: "joe"}];
+    /*
+    	Locations.remove({});
+    	var tempDB = [
+    			{building: "Building1", approved: "true", name: "LocationA", description: "Great spot!"},
+    			{building: "Building1", approved: "true", name: "LocationB", description: "Good View!"},
+    			{building: "Building1", approved: "true", name: "LocationC", description: "Near the lake!"},
+    			{building: "Building1", approved: "true", name: "LocationD", description: "On the sea!"},
+    			{building: "Building2", approved: "true", name: "LocationA2", description: "Great spot!"},
+    			{building: "Building2", approved: "true", name: "LocationB2", description: "Good View!"},
+    			{building: "Building2", approved: "true", name: "LocationC2", description: "Near the lake!"},
+    			{building: "Building2", approved: "true", name: "LocationD2", description: "On the sea!"},
+    			{building: "Building3", approved: "true", name: "LocationA3", description: "Great spot!"},
+    			{building: "Building3", approved: "true", name: "LocationB3", description: "Good View!"},
+    			{building: "Building3", approved: "true", name: "LocationC3", description: "Near the lake!"},
+    			{building: "Building3", approved: "true", name: "LocationD3", description: "On the sea!"},
+    			{building: "Building4", approved: "true", name: "LocationA4", description: "Great spot!"},
+    			{building: "Building4", approved: "true", name: "LocationB4", description: "Good View!"},
+    			{building: "Building4", approved: "true", name: "LocationC4", description: "Near the lake!"},
+    			{building: "Building4", approved: "true", name: "LocationD4", description: "On the sea!"},
+    		];
+    	for (var i = 0; i<tempDB.length; i++) {
+    		Locations.insert(tempDB[i]);
+    	}
+    	Locations.find().fetch();
+	*/
+    	return Locations.find({approved:"true", building: (Session.get("buildingList")? Session.get("buildingList") : "")}, {sort: {name: 1}});
     };
     Template.location_dropdown.disabled = function() {
-    	return Session.get("selBuilding") ? "" : "disabled='disabled'";
+    	return Session.get("buildingList") ? "" : "disabled='disabled'";
     };
     Template.location_dropdown.selected = function(a) {
-    	return Session.equals('selLocation', this.name) ? 'selected' : '';
+    	return Session.equals('locationList', this.name) ? 'selected' : '';
     };
     Template.show_calendar.disabled = function() {
-    	return Session.get("selLocation") ? "" : "disabled='disabled'";
+    	return Session.get("locationList") ? "" : "disabled='disabled'";
     };
     Template.show_calendar.selectedLocation = function() {
-    	return Session.get("selBuilding") + ": " + Session.get("selLocation");
+    	return Session.get("buildingList") + ": " + Session.get("locationList");
     };
     Template.show_calendar.selectedDescription = function() {
-    	return "This is a great place near 4th and main or something";
+    	//return "This is a great place near 4th and main or something";
+    	var query = Locations.findOne({
+    		approved:"true", 
+    		building: (Session.get("buildingList")? Session.get("buildingList") : ""),
+    		name:     (Session.get("locationList")? Session.get("locationList") : "")
+    	}, {});
+    	var description = query && query.description ? query.description : "";
+    	return description;
     };
     Template.show_calendar.availableDays = function() {
     	return [{day: "Mon", date: "1/21"},
