@@ -36,6 +36,56 @@ if (Meteor.isClient) {
         }
         return Template[mode]();
     };
+    
+    Template.building_dropdown.buildingName = function() {
+    	return[{_id: "1", name: "bob"}, {_id: "2", name: "joe"}];
+    };
+    Template.building_dropdown.selected = function(a) {
+    	return Session.equals('selBuilding', this.name) ? 'selected' : '';
+    };
+    Template.location_dropdown.locationName = function() {
+    	return[{_id: "1", name: "bob"}, {_id: "2", name: "joe"}];
+    };
+    Template.location_dropdown.disabled = function() {
+    	return Session.get("selBuilding") ? "" : "disabled='disabled'";
+    };
+    Template.location_dropdown.selected = function(a) {
+    	return Session.equals('selLocation', this.name) ? 'selected' : '';
+    };
+    Template.show_calendar.disabled = function() {
+    	return Session.get("selLocation") ? "" : "disabled='disabled'";
+    };
+    Template.show_calendar.selectedLocation = function() {
+    	return Session.get("selBuilding") + ": " + Session.get("selLocation");
+    };
+    Template.show_calendar.selectedDescription = function() {
+    	return "This is a great place near 4th and main or something";
+    };
+    Template.show_calendar.availableDays = function() {
+    	return [{day: "Mon", date: "1/21"},
+    	{day: "Tue", date: "1/22"},
+    	{day: "Wed", date: "1/23"},
+    	{day: "Thu", date: "1/24"},
+    	{day: "Fri", date: "1/25"}];
+    };
+    Template.show_calendar.availableTimes = function() {
+    	return [{startTime: "9:00am", endTime: "11:00am"},
+    		{startTime: "11:00am", endTime: "1:00pm"},
+    		{startTime: "1:00pm", endTime: "3:00pm"},
+    		{startTime: "3:00pm", endTime: "5:00pm"}];
+    };
+    Template.show_calendar.remaining = function() {
+    	return 5;
+    };
+    Template.show_calendar.available = function() {
+    	return 5;
+    };
+	Template.show_calendar.disabledCheckbox = function() {
+    	return this.available >= this.remaining;
+    };
+
+
+
 
 /*Template.leaderboard.players = function () {
     return Buildings.find({}, {sort: {score: -1, name: 1}});

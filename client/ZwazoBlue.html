@@ -16,7 +16,6 @@
 <template name="main">
 {{> header}}
 {{> content}}
-
 </template>
 
 <template name="header">
@@ -71,94 +70,69 @@
 
 <template name="building_dropdown">
 <p>Select a building</p>
-<select id="multiSelect" style="width:95%">
-    <option>1</option>
-    <option>2</option>
-    <option>3</option>
-    <option>4</option>
-    <option>5</option>
+<select id="buildingList" style="width:95%" onchange="Session.set('selBuilding',this.value);" {{disabled}}>
+	<option>Buildings:</option>
+	{{#each buildingName}}
+		<option {{selected}}>{{name}}</option>
+	{{/each}}
 </select>
 </template>
 
 <template name="location_dropdown">
 <p>Select a location</p>
-<select id="multiSelect" style="width:95%">
-    <option>1</option>
-    <option>2</option>
-    <option>3</option>
-    <option>4</option>
-    <option>5</option>
+<select id="locationList" style="width:95%" onchange="Session.set('selLocation',this.value);" {{disabled}}>
+	<option>Locations:</option>
+	{{#each locationName}}
+		<option {{selected}}>{{name}}</option>
+	{{/each}}
 </select>
 </template>
 
 <template name="show_calendar">
-<div id="popup_calendar" class="modal hide fade in container" style="display: none; margin-top:-100px">
-    <div class="modal-header">
-        <a class="close" data-dismiss="modal">×</a>
-        <h4>Select your time slots</h4>
-    </div>
-    <div class="modal-body">
-        <div class="btn-group" data-toggle="buttons-checkbox">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th><label>Mon<br/>1/20</label></th>
-                    <th><label>Tue<br/>1/21</label></th>
-                    <th><label>Wed<br/>1/22</label></th>
-                    <th><label>Thu<br/>1/23</label></th>
-                    <th><label>Fri<br/>1/24</label></th>
-                <tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><label>9:00am - 11:00am</label></td>
-                    <td>
-                        <button class="btn btn-success btn-small">[3/4]</button>
-                    </td>
-                    <td>
-                        <button class="btn btn-success btn-small" disabled="disabled">[4/4]</button>
-                    </td>
-                    <td>
-                        <button class="btn btn-success btn-small">[1/4]</button>
-                    </td>
-                    <td>
-                        <button class="btn btn-success btn-small">[1/4]</button>
-                    </td>
-                    <td>
-                        <button class="btn btn-success btn-small" disabled="disabled">[4/4]</button>
-                    </td>
-               </tr>
-                <tr>
-                    <td><label>11:00am - 1:00pm</label></td>
-                    <td><input type="checkbox"></td>
-                    <td><input type="checkbox"></td>
-                    <td><input type="checkbox"></td>
-                    <td><input type="checkbox"></td>
-                    <td><input type="checkbox"></td>
-                </tr>
-                <tr>
-                    <td><label>1:00pm - 3:00pm</label></td>
-                    <td><input type="checkbox"></td>
-                    <td><input type="checkbox"></td>
-                    <td><input type="checkbox"></td>
-                    <td><input type="checkbox"></td>
-                    <td><input type="checkbox"></td>
-                </tr>
-
-            </tbody>
-        </table>
-    </div>
-    </div>
-    <div class="modal-footer">
-        <a href="#" class="btn btn-success btn-small" data-dismiss="modal">Close Window</a>
-    </div>
-</div>
 <br/>
 <br/>
 <p>
-<a data-toggle="modal" href="#popup_calendar" class="btn btn-primary btn-small">Show Calendar for this Location</a>
+<button
+	onclick="Session.set('extras', 'show_calendar')" 
+	data-toggle="modal" 
+	href="#popup_calendar" 
+	class="btn btn-primary btn-small" 
+	{{disabled}}>
+	Show Calendar for this Location</button>
 </p>
+<div class="modal fade" id="popup_calendar">
+  <div class="modal-header">
+    <a class="close" data-dismiss="modal">&times;</a>
+    <h3>Select your time slots</h3>
+    <h4>{{selectedLocation}}</h4>
+    <p>{{selectedDescription}}</p>
+  </div>
+  <div class="modal-body">	
+			<table class="table">
+				<thead>
+					<tr>
+						<th></th>
+							{{#each availableDays}}
+								<th><label>{{day}}<br/>{{date}}</label></th>
+							{{/each}}
+					<tr>
+				</thead>
+				{{#each availableTimes}}
+					<tbody>
+						<td><label>{{startTime}} - {{endTime}}</label></td>
+						{{#each availableDays}}
+							<td>
+								<button class="btn btn-primary btn-small" data-toggle="button" {{disabledCheckbox}}>[{{remaining}}/{{available}}]</button>
+							</td>
+						{{/each}}
+					</tbody>
+				{{/each}}
+			</table>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn btn-success btn-small" data-dismiss="modal">Close Window</a>
+  </div>
+</div>
 </template>
 
 <template name="schedule">
