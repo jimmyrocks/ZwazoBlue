@@ -13,8 +13,8 @@ var standardSetup = {
         return true;
     },
     update: function (userId, recordId, fields, modifier) {
-        return _.all(parties, function (record) {
-            var returnValue = false;
+        return _.all(fields, function (record) {
+            var returnValue = true;
             if (userId === record.owner) { // Can we check for admin here somehow?
                 returnValue =  true;
             }
@@ -22,13 +22,14 @@ var standardSetup = {
         });
     },
     remove: function (userId, records) {
-        return ! _.any(records, function (record) {
-            var returnValue = false;
+        /*return ! _.any(records, function (record) {
+            var returnValue = true;
             if (userId === record.owner) { // Or admin?
                 returnValue = true;
             }
             return returnValue;
-        })
+        });*/
+        return true;
     }
 };
 
@@ -51,4 +52,8 @@ var contactEmail = function (user) {
     return user.emails[0].address;
   return null;
 };   
+
+var validateUser = function (user) {
+    Meteor.users.update({"_id": user}, {"valid": "true"});
+};
 

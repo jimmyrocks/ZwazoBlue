@@ -1,4 +1,9 @@
 /* CSS declarations go here */
+.content {
+    padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+}
+
+
 .login-link-text {
     line-height: 2.5;
     color: #ddd;
@@ -6,4 +11,35 @@
 
 .login-link-text:hover {
     color: #aaa;
+}
+
+#login-dropdown-list {
+    top: 15px;
+}
+
+
+.logoAB{
+    color:#DDD;
+    letter-spacing:-2pt;
+    z-index:2;
+    top: -4px;
+    position:relative;
+}
+.logoBB{
+    font-weight:bold;
+    color:#08F;
+    letter-spacing:-2pt;
+    left: -40px;
+    bottom: -7px;
+    z-index:1;
+    position:relative;
+}
+
+.logoAW{
+    color:#333;
+    letter-spacing:-2pt;
+}
+.logoBW{
+    font-weight:bold;
+    color:#08F;
 }
