@@ -81,7 +81,6 @@ if (Meteor.isClient) {
         return Session.get("buildingList") + ": " + Session.get("locationList");
     };
     Template.show_calendar.selectedDescription = function() {
-        //return "This is a great place near 4th and main or something";
         var query = Locations.findOne({
             approved:"true",
             building: (Session.get("buildingList")? Session.get("buildingList") : ""),
@@ -90,149 +89,28 @@ if (Meteor.isClient) {
         var description = query && query.description ? query.description : "";
         return description;
     };
+    
     Template.show_calendar.availableDays = function() {
-        var locationId = (Session.get("locationList")? Session.get("locationList") : "");
-        var timeslots = TimeSlots.find({"locationId": locationId}).fetch();
-        var availableDays = [];
-        var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-        for (var i=0; i<timeslots.length; i++) {
-            var record = {};
-            var newEntry = true;
-            var curTimeSlot = timeslots[i];
-            record.startTime = new Date(timeslots[i].startTime);
-            record.day = days[record.startTime.getDay()];
-            record.date = [record.startTime.getMonth()]+"/"+[record.startTime.getDate()];
-            for (var j=0; j<availableDays.length; j++) {
-                if (availableDays[j] &&
-                        availableDays[j].startTime &&
-                        availableDays[j].startTime.getDate() === record.startTime.getDate() &&
-                        availableDays[j].startTime.getMonth() === record.startTime.getMonth() &&
-                        availableDays[j].startTime.getFullYear() === record.startTime.getFullYear()
-                   ) {
-                       newEntry = false;
-                   }
-            }
-            if (newEntry) {
-                availableDays.push(record);
-            }
-        }
-
-        return availableDays;
+        return calendarTools.distinctDays(getCalendarData());;
     };
     Template.show_calendar.availableTimes = function() {
         var locationId = (Session.get("locationList")? Session.get("locationList") : "");
         var timeslots = TimeSlots.find({"locationId": locationId}).fetch();
-        var availableTimes = [];
-
-        var toTime = function(dateField) {
-            var hours24 = false;
-            var returnValue = {
-                hours: dateField.getHours(),
-                minutes: dateField.getMinutes(),
-                ampm: ""
-            };
-
-            if (returnValue.minutes < 10) {
-                returnValue.minutes = "0" + returnValue.minutes;
-            }
-
-            if (!hours24) {
-                returnValue.hours =  returnValue.hours % 12;
-                returnValue.ampm = (returnValue.hours >= 11) ? "am" : "pm";
-                if (returnValue.hours === 0) {
-                    returnValue.hours = 12;
-                }
-            }
-
-            return returnValue.hours + ":" + returnValue.minutes + returnValue.ampm;
-        };
-
-        for (var i=0; i<timeslots.length; i++) {
-            var record = {};
-            var newEntry = true;
-            var curTimeSlot = timeslots[i];
-            record.startTimeDate = new Date(timeslots[i].startTime);
-            record.endTimeDate =new Date(timeslots[i].endTime);
-            record.startTime = toTime(record.startTimeDate);
-            record.endTime = toTime(record.endTimeDate);
-            for (var j=0; j<availableTimes.length; j++) {
-                if (availableTimes[j] &&
-                        availableTimes[j].startTimeDate &&
-                        availableTimes[j].endTimeDate &&
-                        availableTimes[j].startTimeDate.getHours() === record.startTimeDate.getHours() &&
-                        availableTimes[j].startTimeDate.getMinutes() === record.startTimeDate.getMinutes() &&
-                        availableTimes[j].endTimeDate.getHours() === record.endTimeDate.getHours() &&
-                        availableTimes[j].endTimeDate.getMinutes() === record.endTimeDate.getMinutes()
-                   ) {
-                       newEntry = false;
-                   }
-            }
-            if (newEntry) {
-                availableTimes.push(record);
-            }
-        }
-
-        return availableTimes;
+        return calendarTools.distinctTimes(getCalendarData());;
     };
 
     Template.show_calendar.availableSlot = function() {
-        //This is going to be a mess!
-        returnValue = "";
-        var availableDays = Template.show_calendar.availableDays();
+        var returnValue = "";
+
+		// Define the queries
         var locationId = (Session.get("locationList")? Session.get("locationList") : "");
-        for (var i=0; i<availableDays.length; i++) {
-            //I should do a template for this
-            var columnDay = availableDays[i].startTime;
-            var slotStartDate = new Date(this.startTimeDate.getTime());
-            var slotEndDate = new Date(this.endTimeDate.getTime());
-            slotStartDate.setMonth(columnDay.getMonth());
-            slotStartDate.setFullYear(columnDay.getFullYear());
-            slotStartDate.setDate(columnDay.getDate());
-            slotEndDate.setMonth(columnDay.getMonth());
-            slotEndDate.setFullYear(columnDay.getFullYear());
-            slotEndDate.setDate(columnDay.getDate());
-
-            var currentSlot = TimeSlots.findOne({
-                "locationId": locationId,
-                "startTime": slotStartDate,
-                "endTime": slotEndDate
-            });
-            returnValue += "<td>";
-            if (currentSlot) {
-                var remaining = Calendar.find({"timeSlot_id": currentSlot._id}).fetch().length;
-                var userSelected = Calendar.findOne({"timeSlot_id": currentSlot._id, "user_id" : userId});
-                var classes = ['btn', 'btn-small'];
-                var colorClass = "btn-primary";
-                var outerDiv = document.createElement("div");
-                var button = document.createElement("button");
-                // Probably will remove this item
-                //
-                button.setAttribute("slot_id", currentSlot._id);
-                button.setAttribute("onclick", "toggleCalendarButton(this);");
-                if (remaining >= currentSlot.available) {
-                    if (!userSelected) {button.setAttribute("disabled", "disabled");}
-                    colorClass = "btn-danger";
-                }
-                if (userSelected) {
-                    classes.push("active");
-                    colorClass = "btn-success";
-                    button.setAttribute("calendar_id", userSelected._id);
-                }
-                classes.push(colorClass);
-                button.setAttribute("class", classes.join(" "));
-                button.textContent = "[" + remaining + "/" + currentSlot.available + "]";
-                outerDiv.appendChild(button);
-
-                returnValue += outerDiv.innerHTML;
-            }
-            returnValue += "</td>";
-        }
-        return returnValue;
+        var locationQuery = {"locationId" : locationId};
+        return calendarTools.drawSlots(locationQuery, this.startTimeDate, this.endTimeDate, calendarTools.drawButton, calendarTools.distinctDays(getCalendarData()));
     };
+    
+    // Non template functions
 
     var setSelection = function(dropdownBox) {
-
         var sessionElement = dropdownBox.id;
         var sessionValue = dropdownBox.value;
 
@@ -246,6 +124,11 @@ if (Meteor.isClient) {
 
     };
 
+    var getCalendarData = function() {
+        var locationId = (Session.get("locationList")? Session.get("locationList") : "");
+        var timeslots = TimeSlots.find({"locationId": locationId}).fetch();
+        return timeslots;
+    };
 
     var toggleCalendarButton = function (obj) {
         var classes = obj.getAttribute("class").split(" ");
@@ -288,20 +171,47 @@ if (Meteor.isClient) {
     /////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////
 
-    Template.schedule.availableDays = function() {
+	// Schedule Page
+	
+	var getUserScheduleData = function() {
         var calendar = Calendar.find({"user_id": userId}).fetch();
         var timeslots = [];
-        var availableDays = [];
-        var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
         for (var k=0; k<calendar.length; k++) {
             if (calendar[k].timeSlot_id) {
                 timeslots.push(TimeSlots.findOne({"_id": calendar[k].timeSlot_id}));
-                console.log(timeslots);
             }
         }
+        return timeslots;
+	};
+	
+    Template.schedule.availableDays = function() {
+        return calendarTools.distinctDays(getUserScheduleData());
+    };
+    
+    Template.schedule.availableTimes = function() {
+        return calendarTools.distinctTimes(getUserScheduleData());
+    };
+    
+    Template.schedule.availableSlot = function() {
+        var returnValue = "";
+		// Define the queries
+        var userQuery = {};//{"user_id" : userId};
+        return calendarTools.drawSlots(userQuery, this.startTimeDate, this.endTimeDate, calendarTools.drawScheduleTable, calendarTools.distinctDays(getUserScheduleData()));
+    };
+    
+    /////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////
+    
+    ////////// Functions
+    
+	var calendarTools = function() {
+    var distinctDays = function(timeslots) {
+        var availableDays = [];
+        var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-        for (var i=0; i<timeslots.length; i++) {
+            for (var i=0; i<timeslots.length; i++) {
             var record = {};
             var newEntry = true;
             var curTimeSlot = timeslots[i];
@@ -322,9 +232,168 @@ if (Meteor.isClient) {
                 availableDays.push(record);
             }
         }
-
         return availableDays;
     };
+    
+    var distinctTimes = function(timeslots) {
+            var availableTimes = [];
+
+        for (var i=0; i<timeslots.length; i++) {
+            var record = {};
+            var newEntry = true;
+            var curTimeSlot = timeslots[i];
+            record.startTimeDate = new Date(timeslots[i].startTime);
+            record.endTimeDate =new Date(timeslots[i].endTime);
+            record.startTime = toTime(record.startTimeDate);
+            record.endTime = toTime(record.endTimeDate);
+            for (var j=0; j<availableTimes.length; j++) {
+                if (availableTimes[j] &&
+                        availableTimes[j].startTimeDate &&
+                        availableTimes[j].endTimeDate &&
+                        availableTimes[j].startTimeDate.getHours() === record.startTimeDate.getHours() &&
+                        availableTimes[j].startTimeDate.getMinutes() === record.startTimeDate.getMinutes() &&
+                        availableTimes[j].endTimeDate.getHours() === record.endTimeDate.getHours() &&
+                        availableTimes[j].endTimeDate.getMinutes() === record.endTimeDate.getMinutes()
+                   ) {
+                       newEntry = false;
+                   }
+            }
+            if (newEntry) {
+                availableTimes.push(record);
+            }
+        }
+        
+        return availableTimes;
+    };
+    
+	var drawSlots = function(query, startTimeRaw, endTimeRaw, drawFunction, availableDays) {
+		var returnValue = ""
+        var slotStartDate = new Date(startTimeRaw.getTime());
+        var slotEndDate = new Date(endTimeRaw.getTime());
+
+		// Loop through all the days
+
+        for (var i=0; i<availableDays.length; i++) {
+
+			// Create a new time from the column and row headers
+            var columnDay = availableDays[i].startTime;
+            slotStartDate.setMonth(columnDay.getMonth());
+            slotStartDate.setFullYear(columnDay.getFullYear());
+            slotStartDate.setDate(columnDay.getDate());
+            slotEndDate.setMonth(columnDay.getMonth());
+            slotEndDate.setFullYear(columnDay.getFullYear());
+            slotEndDate.setDate(columnDay.getDate());
+            
+            // Create the base query
+            var slotQuery = {
+            	"endTime": slotEndDate,
+            	"startTime": slotStartDate
+            };
+            
+            // Add parameters to the query
+            for (key in query) {
+            	if (query.hasOwnProperty(key)) {
+	            	slotQuery[key] = query[key];
+	            };
+            }
+			// Run another query to mongo
+            var currentSlot = TimeSlots.findOne(slotQuery);
+            
+            // Build the table entry
+            returnValue += drawFunction(currentSlot);
+        }
+        return returnValue;
+    }
+
+	var drawButton = function (currentSlot) {    
+            // Build the button
+            var returnValue = "";
+            if (currentSlot) {
+                var remaining = Calendar.find({"timeSlot_id": currentSlot._id}).fetch().length;
+                var userSelected = Calendar.findOne({"timeSlot_id": currentSlot._id, "user_id" : userId});
+                var classes = ['btn', 'btn-small'];
+                var colorClass = "btn-primary";
+                var outerDiv = document.createElement("div");
+                var button = document.createElement("button");
+                button.setAttribute("slot_id", currentSlot._id);
+                button.setAttribute("onclick", "toggleCalendarButton(this);");
+                if (remaining >= currentSlot.available) {
+                    if (!userSelected) {button.setAttribute("disabled", "disabled");}
+                    colorClass = "btn-danger";
+                }
+                if (userSelected) {
+                    classes.push("active");
+                    colorClass = "btn-success";
+                    button.setAttribute("calendar_id", userSelected._id);
+                }
+                classes.push(colorClass);
+                button.setAttribute("class", classes.join(" "));
+                button.textContent = "[" + remaining + "/" + currentSlot.available + "]";
+                outerDiv.appendChild(button);
+
+                returnValue += outerDiv.innerHTML;
+            }
+            return "<td>" + returnValue + "</td>";
+        };
+        
+	var drawScheduleTable = function (currentSlot) {    
+            // Build the button
+            var returnValue = "";
+            if (currentSlot) {
+            	var location = Locations.findOne({"name" : currentSlot.locationId});
+            	var building = Buildings.findOne({"name": location.building});
+                var userSelected = Calendar.findOne({"timeSlot_id": currentSlot._id, "user_id" : userId});
+                var outerDiv = document.createElement("div");
+                var displayField = document.createElement("div");
+                var styles = ["-moz-border-radius: 15px", "border-radius: 15px", "text-align: center"]; // Should be in the stylesheet
+                var color = "";
+                
+                if (userSelected) {
+                    styles.push("background-color: #afa");
+                    displayField.innerText = building.name + ": " + location.name;
+	                displayField.setAttribute("onclick", "console.log('" + currentSlot._id+ "');" );
+                }
+                displayField.setAttribute("style", styles.join("; "));
+                outerDiv.appendChild(displayField);
+
+                returnValue = outerDiv.innerHTML;
+            }
+            return "<td>" + returnValue + "</td>";
+        };
+    
+        var toTime = function(dateField) {
+            var hours24 = false;
+            var returnValue = {
+                hours: dateField.getHours(),
+                minutes: dateField.getMinutes(),
+                ampm: ""
+            };
+
+            if (returnValue.minutes < 10) {
+                returnValue.minutes = "0" + returnValue.minutes;
+            }
+
+            if (!hours24) {
+                returnValue.hours =  returnValue.hours % 12;
+                returnValue.ampm = (returnValue.hours >= 11) ? "am" : "pm";
+                if (returnValue.hours === 0) {
+                    returnValue.hours = 12;
+                }
+            }
+
+            return returnValue.hours + ":" + returnValue.minutes + returnValue.ampm;
+        };
+        return {
+        	toTime: function(dateField) {return toTime(dateField);},
+        	distinctTimes: function(tileslots) {return distinctTimes(tileslots);},
+        	distinctDays: function(tileslots) {return distinctDays(tileslots);},
+        	drawSlots: function(query, startTimeRaw, endTimeRaw, drawFunction, availableDays) {
+        		return drawSlots(query, startTimeRaw, endTimeRaw, drawFunction, availableDays);
+        	},
+        	drawButton: function (currentSlot) {return drawButton(currentSlot);},
+        	drawScheduleTable: function (currentSlot) {return drawScheduleTable(currentSlot);}
+        };
+    }();
 
 
 }
