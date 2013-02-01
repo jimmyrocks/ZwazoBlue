@@ -62,7 +62,7 @@ if (Meteor.isClient) {
         return Locations.find(
                 {
                     approved:"true",
-               building: (Session.get("buildingList")? Session.get("buildingList") : "")
+               building: (Session.get("buildingList") ? Session.get("buildingList") : "")
                 }, {
                     sort: {name: 1}
                 }
@@ -83,8 +83,8 @@ if (Meteor.isClient) {
     Template.show_calendar.selectedDescription = function() {
         var query = Locations.findOne({
             approved:"true",
-            building: (Session.get("buildingList")? Session.get("buildingList") : ""),
-            name:     (Session.get("locationList")? Session.get("locationList") : "")
+            building: (Session.get("buildingList") ? Session.get("buildingList") : ""),
+            name:     (Session.get("locationList") ? Session.get("locationList") : "")
         }, {});
         var description = query && query.description ? query.description : "";
         return description;
@@ -94,7 +94,7 @@ if (Meteor.isClient) {
         return calendarTools.distinctDays(getCalendarData());;
     };
     Template.show_calendar.availableTimes = function() {
-        var locationId = (Session.get("locationList")? Session.get("locationList") : "");
+        var locationId = (Session.get("locationList") ? Session.get("locationList") : "");
         var timeslots = TimeSlots.find({"locationId": locationId}).fetch();
         return calendarTools.distinctTimes(getCalendarData());;
     };
@@ -402,52 +402,27 @@ if (Meteor.isClient) {
     ////////// Leaflet
     
     Template.map.leafletMap = function () {
-    	//console.log("drawmap!");
-    	//var mapDiv = "map";
+    	var mapDivName = "map_location_leaflet_84hfreunf0q8efn08qnf7n";
+    	var jsonPath = "./berks_districts.json";
+    	var mapCode = document.createElement("div");
+    	var outerDiv = document.createElement("div");
+    	var mapCenter = Session.get("leafletMapCenter") ? Session.get("leafletMapCenter") : new L.LatLng(40.511, -75.783);
+    	var mapZoom = Session.get("leafletMapZoom") ? Session.get("leafletMapZoom") : 16;
     	
-		/*$(window).load(function(){
-			// full load
-			leafletMap(mapDiv);
-		});*/
+    	// Draw the containing Div
+    	mapCode.setAttribute("id", mapDivName);
+    	mapCode.setAttribute("class", "leafletMap");
+    	outerDiv.appendChild(mapCode);
     	
-		/*if ($("#" + mapDiv).length) {
-			leafletMap(mapDiv);
-		}*/
-    	/*if ($(mapDiv).is(':visible')) {
-    		console.log("map!");
-    		leafletMap(mapDiv);
-    	};*/
-    	/*$("#mapholder" + mapDiv).bind("DOMSubtreeModified",function(){
-    		console.log("change!");
-			if ($("#" + mapDiv).length) {
-				leafletMap(mapDiv);
-			}
-    	});*/
-    	/*var mapDiv = document.createElement("div");
-    	
-    	
-    	var newDiv = document.createElement("div");
-    	newDiv.appendChild(leafletMap(mapDiv));
-    	return newDiv.innerHTML;*/
-    	
-    	console.log("zpr?");
-    	var mapDiv = "map";
-    	//Meteor.autosubscribe(function() {console.log("aa");});
-		//Meteor.autosubscribe(function(){
-				// full load
-				//leafletMap(mapDiv);
-				//console.log("rawr?");
-				Meteor.defer(function(){leafletMap(mapDiv);});
-		//	});
-						console.log("df?");
-/*if ($("#" + mapDiv).length) {
-				leafletMap(mapDiv);
-			}*/
+		Meteor.defer(function(){
+			leafletMap(mapDivName, jsonPath, mapCenter, mapZoom);
+		});
+		return outerDiv.innerHTML;
 	};
     
-    var leafletMap = function(mapDiv) {
-            var map = new L.Map(mapDiv)
-            .setView(new L.LatLng(40.6923, -75.28), 5)
+    var leafletMap = function(mapDivName, jsonPath, mapCenter, mapZoom) {
+            var map = new L.Map(mapDivName)
+            .setView(mapCenter, mapZoom)
             .addLayer(new L.TileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"));
 
             var svg = d3.select(map.getPanes().overlayPane).append("svg"),
@@ -462,7 +437,6 @@ if (Meteor.isClient) {
                         .data(collection.features)
                         .enter().append("path");
 
-                        //map.on("viewreset", reset);
                         map.on("moveend", mapMoved);
                         map.on("zoomstart", zoomstart);
                         reset();
@@ -480,72 +454,28 @@ if (Meteor.isClient) {
                             g.attr("transform", "translate(" + -bottomLeft[0] + "," + -topRight[1] + ")");
 
                             feature.attr("d", path);
-                            console.log("Viewreset: Fired when the map needs to redraw its content (this usually happens on map zoom or load). Very useful for creating custom overlays.");
                         };
                         function mapMoved() {
-                            console.log("moveend: Fired when the view of the map ends changed (e.g. user stopped dragging the map).");
-                            newBounds = map.getBounds();
-                            newZoom = map.getZoom();
-                            console.log(newBounds);
-                            console.log(newZoom);
-                            //var newTile =
-                            //"./data/parcels2001_WGS84?n="+newBounds._northEast.lat+"&s="+newBounds._southWest.lat+"&e="+newBounds._northEast.lng+"&w="+newBounds._southWest.lng+"&z="+newZoom
-                            tileZ = map.getZoom();
-                            tileX = long2tile(map.getCenter().lng, map.getZoom());
-                            tileY = lat2tile(map.getCenter().lat, map.getZoom());
-
-                            //newTile = "http://polymaps.appspot.com/state/" +
-                            //tileZ + "/" + tileX + "/" + tileY + ".json";
-
-                            /*var paths = g.selectAll("path").data([]);
-                                paths.exit().remove();
-                                console.log(paths);*/
+                            Session.set("leafletMapCenter", map.getCenter());
+                            Session.set("leafletMapZoom", map.getZoom());
                             
-
-
-                           /* newCollectionX =
-                            d3.json(newTile,
-                            function(collection2) {
-                                //adjust bounds (should be its own function!)
-                                collection2Bounds = d3.geo.bounds(collection2);
-                                var newBounds = [[0,0],[0,0]];
-                                newBounds[0][0] = bounds[0][0] < collection2Bounds[0][0] ? bounds[0][0] : collection2Bounds[0][0];
-                                newBounds[0][1] = bounds[0][1] < collection2Bounds[0][1] ? bounds[0][1] : collection2Bounds[0][1];
-                                newBounds[1][0] = bounds[1][0] > collection2Bounds[1][0] ? bounds[1][0] : collection2Bounds[1][0];
-                                newBounds[1][1] = bounds[1][1] > collection2Bounds[1][1] ? bounds[1][1] : collection2Bounds[1][1];
-                                bounds = newBounds;
-
-                                //var paths = g.selectAll("path").data([]);
-                                //paths.exit().remove();
-                                //console.log(paths);
-
-
-                                //draw the data
-                                var paths =
-                                g.selectAll("path").data(collection2.features);
-                                var feature2 = paths.enter().append("path");
-                                feature2.attr("d", path);
-
-
-                                reset();
-                            } );*/
+       	                 g.selectAll("path")
+								.style("opacity", 1)
+								.transition().duration(400).style("opacity", 1);
+							console.log(map.getZoom());
 							reset();
                         };
                         function zoomstart() {
-                            //console.log("zoomstart: Fired when the map zoom is about to change (e.g. before zoom animation).");
+       	                 g.selectAll("path")
+								.style("opacity", 1)
+								.transition().duration(400).style("opacity", 0);
+								console.log(map.getZoom());
+                        	//hide the map now?
                         }
                         // Click Behavior
                         g.selectAll("path")
                         .on("click", function(d) {
                             console.log(d.properties);
-                            //var name = d.properties.name;
-                            //console.log(name);
-                            //console.log(properties);
-                            //var centroid = path.centroid(d);
-                            //console.log(centroid);
-                            //var bounds = d3.geo.bounds(d);
-                            //console.log(bounds);
-                            //moveToState(centroid, bounds);
                         });
 
                         // Use Leaflet to implement a D3 geographic projection.
@@ -553,20 +483,10 @@ if (Meteor.isClient) {
                             var point = map.latLngToLayerPoint(new L.LatLng(x[1], x[0]));
                             return [point.x, point.y];
                         };
-
-                        function long2tile(lon,zoom) { return (Math.floor((lon+180)/360*Math.pow(2,zoom))); }
-                        function lat2tile(lat,zoom)  {
-                            return (Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom)));
-                        };
                     });
                 };
                 
-                //svglib("http://polymaps.appspot.com/state/6/18/24.json");
-                //svglib("./data/cgi/getjson.py");
-                //svglib("./data/philabounds2.json");
-                svglib("./berks_districts.json");
-                
-                return mapDiv;
+                svglib(jsonPath);
     };
     
 
