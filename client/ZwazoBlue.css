@@ -43,3 +43,23 @@
     font-weight:bold;
     color:#08F;
 }
+
+
+/* Map stuff */
+            #map {
+                width: 960px;
+                height: 500px;
+            }
+
+            path {
+                fill: #000;
+                fill-opacity: .1;
+                stroke: #f00;
+                stroke-width: 1.5px;
+            }
+
+            path:hover {
+                fill: #0f0;
+                fill-opacity: .5;
+            }
+/* End map stuff */
